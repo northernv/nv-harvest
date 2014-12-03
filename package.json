@@ -1,0 +1,16 @@
+{
+  "name": "nv-harvest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "harvest": "0.0.9",
+    "moment": "^2.8.4",
+    "nconf": "^0.7.1"
+  }
+}
