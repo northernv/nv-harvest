@@ -1,3 +1,9 @@
+/**
+ * My time pulled from Harvest
+ */
+
+// FIXME - custom start/end doesn't work
+//
 var path        = require('path'),
     moment      = require('moment'),
     envFile     = path.normalize(__dirname + '/.env'),
@@ -6,6 +12,8 @@ var path        = require('path'),
     email       = nconf.get('EMAIL'),
     password    = nconf.get('PASSWORD'),
     projectId   = nconf.get('PROJECT'),
+    start       = nconf.get('START'),
+    end         = nconf.get('END'),
     dateFormat  = 'YYYYMMDD',
     Harvest     = require('harvest'),
     harvest     = Harvest({subdomain: subdomain, email: email, password: password}),
@@ -19,14 +27,23 @@ moment.locale('us', {
   }
 });
 
+if (!start || !end) {
+  // use moment
+  start = moment().startOf('week');
+  end   = moment(start).add(6, 'd').format(dateFormat);
+  start = start.format(dateFormat);
+}
 
-var start = moment().startOf('week'),
-    end   = moment(start).add(6, 'd');
+
+// Temp overrides
+//start="20150112";
+//end="20150118";
+
 
 Reports.timeEntriesByProject({
   project_id: projectId,
-  from: start.format(dateFormat),
-  to: end.format(dateFormat)
+  from: start,
+  to: end
 }, function(err, tasks) {
     if (err) throw new Error(err);
 
@@ -50,7 +67,7 @@ Reports.timeEntriesByProject({
     // Print out
     for (var t in times) {
 
-      console.log(t);
+      console.log(t, moment(t).format('ddd'));
 
       var total = 0;
 
