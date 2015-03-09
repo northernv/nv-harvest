@@ -2,7 +2,7 @@ Just a simple Node.js Harvest client that goes out and queries Harvest's API for
 
 ## Install
 
-`npm install`
+`npm install git@github.com:northernv/nv-harvest.git`
 
 Then add a file in the project root called `.env`
 
