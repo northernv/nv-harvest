@@ -14,11 +14,18 @@ var path        = require('path'),
     projectId   = nconf.get('PROJECT'),
     start       = nconf.get('START'),
     end         = nconf.get('END'),
+    meetingCode = nconf.get('MEETING_CODE'),
+    ticketCode  = nconf.get('TICKET_CODE'),
     dateFormat  = 'YYYYMMDD',
     Harvest     = require('harvest'),
     harvest     = Harvest({subdomain: subdomain, email: email, password: password}),
     Reports     = harvest.Reports,
-    startOfWeek = 1; // Monday
+    startOfWeek = 1, // Monday
+    taskCodes   = {},
+    _           = require('lodash');
+
+taskCodes[meetingCode] = 'Meetings';
+taskCodes[ticketCode] = 'Tickets';
 
 // Changed start of week to monday
 moment.locale('us', {
@@ -55,35 +62,38 @@ Reports.timeEntriesByProject({
       var day = entry.spent_at;
       var num = entry.hours;
       var up = (Math.ceil(num * 4) / 4).toFixed(2);
+      var taskType = taskCodes[entry.task_id];
 
       // Init array if doesn't exists
       if (!Array.isArray(times[day])) times[day] = [];
 
-      times[day].push({time: up, note: entry.notes} );
+      times[day].push({time: up, note: entry.notes, taskType: taskType} );
     });
 
     var grandTotal = 0;
 
-    // Print out
-    for (var t in times) {
+    _.each(times, function(day, date){
+        console.log(date, moment(date).format('ddd'));
+        var sorted = _.sortBy(day, 'taskType');
+        var grouped = _.groupBy(sorted, 'taskType');
+        var total = 0;
 
-      console.log(t, moment(t).format('ddd'));
+        _.each(grouped, function(tasks, taskType){
+            console.log('----- ' + taskType + ' -----');
 
-      var total = 0;
+            tasks.forEach(function(d){
+                total+=parseFloat(d.time);
+                console.log(d.time, d.note);
+            });
 
-      times[t].forEach(processDay);
+        });
 
-      console.log('== ', total);
-      console.log('');
-      grandTotal += total;
-    }
+        console.log('== ', total);
+        console.log('');
+        grandTotal += total;
+    });
 
     console.log('');
     console.log('Total Hours: ', grandTotal);
-
-    function processDay(day) {
-      total+=parseFloat(day.time);
-      console.log(day.time, day.note);
-    }
 });
 

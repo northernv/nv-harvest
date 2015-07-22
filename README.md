@@ -11,7 +11,9 @@ Then add a file in the project root called `.env`
   "SUBDOMAIN": "YOURSUBDOMAIN",
   "EMAIL": "YOUREMAIL",
   "PASSWORD": "YOUR PASSWORD",
-  "PROJECT": PROJECTID
+  "PROJECT": PROJECTID,
+  "MEETING_CODE": MEETING_TASK_ID,
+  "TICKET_CODE": TICKET_TASK_ID
 }
 ```
 
@@ -22,8 +24,10 @@ Then add a file in the project root called `.env`
 It will look like this
 
 ```
-2014-12-01
+2014-12-01 Mon
+----- Meetings -----
 0.50 Scrum
+----- Tickets -----
 0.75 blah, blah, blah
 0.75 blah, blah, blah
 1.75 blah, blah, blah
@@ -32,14 +36,19 @@ It will look like this
 0.75 blah, blah, blah
 ==  9
 
-2014-12-02
+2014-12-02 Tue
+----- Meetings -----
 0.75 la, la, la
 3.50 la, la, la
 1.25 la, la, la
+----- Tickets -----
 0.50 la, la, la
 2.00 la, la, la
 2.00 la, la, la
 ==  10
+
+
+Total Hours: 19
 ```
 
 
