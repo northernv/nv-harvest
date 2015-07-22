@@ -2,9 +2,9 @@ Just a simple Node.js Harvest client that goes out and queries Harvest's API for
 
 ## Install
 
-`npm install git@github.com:northernv/nv-harvest.git`
+`npm install -g git@github.com:northernv/nv-harvest.git`
 
-Then add a file in the project root called `.env`
+Then add a file to your home directory `.timesheet`
 
 ```
 {
@@ -17,9 +17,11 @@ Then add a file in the project root called `.env`
 }
 ```
 
+You can also add a `.timesheet` file to the root of each project to override settings for that project only.
+
 ## Running
 
-`node index`
+`$ timesheet`
 
 It will look like this
 

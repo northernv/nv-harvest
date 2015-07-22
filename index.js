@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * My time pulled from Harvest
  */
@@ -6,9 +8,24 @@
 //
 var path        = require('path'),
     moment      = require('moment'),
-    envFile     = path.normalize(__dirname + '/.env'),
-    nconf       = require('nconf').argv().file(envFile),
-    subdomain   = nconf.get('SUBDOMAIN'),
+    chalk       = require('chalk'),
+    configFileName = '.timesheet',
+    userEnvFile = path.normalize(process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + '/' + configFileName),
+    nconf       = require('nconf');
+// Command line args take highest precedence
+nconf.argv();
+
+// Look for .timesheet in current directory and walk up the tree
+// this allows for adding project specific .timesheet files..
+nconf.file('project', {
+    file: configFileName,
+    search: true
+});
+
+// Fallback to global config in user's home folder.
+nconf.file('user', userEnvFile);
+
+var subdomain   = nconf.get('SUBDOMAIN'),
     email       = nconf.get('EMAIL'),
     password    = nconf.get('PASSWORD'),
     projectId   = nconf.get('PROJECT'),
@@ -52,7 +69,10 @@ Reports.timeEntriesByProject({
   from: start,
   to: end
 }, function(err, tasks) {
-    if (err) throw new Error(err);
+    if (err) {
+        console.log(chalk.red(err));
+        process.exit(1);
+    }
 
     var times = {};
 
@@ -73,13 +93,13 @@ Reports.timeEntriesByProject({
     var grandTotal = 0;
 
     _.each(times, function(day, date){
-        console.log(date, moment(date).format('ddd'));
+        console.log(chalk.underline(date, moment(date).format('ddd')));
         var sorted = _.sortBy(day, 'taskType');
         var grouped = _.groupBy(sorted, 'taskType');
         var total = 0;
 
         _.each(grouped, function(tasks, taskType){
-            console.log('----- ' + taskType + ' -----');
+            console.log(chalk.yellow('----- ' + taskType + ' -----'));
 
             tasks.forEach(function(d){
                 total+=parseFloat(d.time);
@@ -88,12 +108,13 @@ Reports.timeEntriesByProject({
 
         });
 
-        console.log('== ', total);
+        console.log(chalk.cyan.bold('== ', total));
         console.log('');
         grandTotal += total;
     });
 
     console.log('');
-    console.log('Total Hours: ', grandTotal);
+    console.log(chalk.green.bold('Total Hours: ', grandTotal));
+    process.exit(0);
 });
 
