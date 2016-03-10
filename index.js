@@ -4,9 +4,9 @@
  * My time pulled from Harvest
  */
 
-// FIXME - custom start/end doesn't work
 //
 var path        = require('path'),
+    async       = require('async'),
     moment      = require('moment'),
     chalk       = require('chalk'),
     configFileName = '.timesheet',
@@ -37,12 +37,10 @@ var subdomain   = nconf.get('SUBDOMAIN'),
     Harvest     = require('harvest'),
     harvest     = Harvest({subdomain: subdomain, email: email, password: password}),
     Reports     = harvest.Reports,
+    Tasks       = harvest.Tasks,
     startOfWeek = 1, // Monday
-    taskCodes   = {},
     _           = require('lodash');
 
-taskCodes[meetingCode] = 'Meetings';
-taskCodes[ticketCode] = 'Tickets';
 
 // Changed start of week to monday
 moment.locale('us', {
@@ -58,63 +56,90 @@ if (!start || !end) {
   start = start.format(dateFormat);
 }
 
-
 // Temp overrides
 //start="20150112";
 //end="20150118";
 
+/**
+ *
+ * Main Program
+ *
+ */
+async.waterfall([
+  getAllTasks,
+  getTimeEntries
+], function (err, result) {
+  process.exit(0);
+})
 
-Reports.timeEntriesByProject({
-  project_id: projectId,
-  from: start,
-  to: end
-}, function(err, tasks) {
+function getAllTasks(cb) {
+  Tasks.list({}, function(err, tasks) {
     if (err) {
         console.log(chalk.red(err));
-        process.exit(1);
+        cb(err);
     }
+    var mappedTasks = _.reduce(tasks, function (memo, data) {
+      memo[data.task.id] = data.task.name
+      return memo;
+    }, {});
+    cb(err, mappedTasks);
+  });
+}
 
-    var times = {};
+function getTimeEntries(taskCodes, cb) {
 
-    // Process times
-    tasks.forEach(function(task) {
-      var entry = task.day_entry;
-      var day = entry.spent_at;
-      var num = entry.hours;
-      var up = (Math.ceil(num * 4) / 4).toFixed(2);
-      var taskType = taskCodes[entry.task_id];
+  Reports.timeEntriesByProject({
+    project_id: projectId,
+    from: start,
+    to: end
+  }, function(err, tasks) {
+      if (err) {
+          console.log(chalk.red(err));
+          cb(err);
+      }
 
-      // Init array if doesn't exists
-      if (!Array.isArray(times[day])) times[day] = [];
+      var times = {};
 
-      times[day].push({time: up, note: entry.notes, taskType: taskType} );
-    });
+      // Process times
+      tasks.forEach(function(task) {
+        var entry = task.day_entry;
+        var day = entry.spent_at;
+        var num = entry.hours;
+        var up = (Math.ceil(num * 4) / 4).toFixed(2);
+        var taskType = taskCodes[entry.task_id];
 
-    var grandTotal = 0;
+        // Init array if doesn't exists
+        if (!Array.isArray(times[day])) times[day] = [];
 
-    _.each(times, function(day, date){
-        console.log(chalk.underline(date, moment(date).format('ddd')));
-        var sorted = _.sortBy(day, 'taskType');
-        var grouped = _.groupBy(sorted, 'taskType');
-        var total = 0;
+        times[day].push({time: up, note: entry.notes, taskType: taskType} );
+      });
 
-        _.each(grouped, function(tasks, taskType){
-            console.log(chalk.yellow('----- ' + taskType + ' -----'));
+      var grandTotal = 0;
 
-            tasks.forEach(function(d){
-                total+=parseFloat(d.time);
-                console.log(d.time, d.note);
-            });
+      _.each(times, function(day, date){
+          console.log(chalk.underline(date, moment(date).format('ddd')));
+          var sorted = _.sortBy(day, 'taskType');
+          var grouped = _.groupBy(sorted, 'taskType');
+          var total = 0;
 
-        });
+          _.each(grouped, function(tasks, taskType){
+              console.log(chalk.yellow('----- ' + taskType + ' -----'));
 
-        console.log(chalk.cyan.bold('== ', total));
-        console.log('');
-        grandTotal += total;
-    });
+              tasks.forEach(function(d){
+                  total+=parseFloat(d.time);
+                  console.log(d.time, d.note);
+              });
 
-    console.log('');
-    console.log(chalk.green.bold('Total Hours: ', grandTotal));
-    process.exit(0);
-});
+          });
+
+          console.log(chalk.cyan.bold('== ', total));
+          console.log('');
+          grandTotal += total;
+      });
+
+      console.log('');
+      console.log(chalk.green.bold('Total Hours: ', grandTotal));
+      cb();
+  });
+}
 
