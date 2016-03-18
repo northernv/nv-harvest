@@ -11,9 +11,7 @@ Then add a file to your home directory `.timesheet`
   "SUBDOMAIN": "YOURSUBDOMAIN",
   "EMAIL": "YOUREMAIL",
   "PASSWORD": "YOUR PASSWORD",
-  "PROJECT": PROJECTID,
-  "MEETING_CODE": MEETING_TASK_ID,
-  "TICKET_CODE": TICKET_TASK_ID
+  "PROJECT": PROJECTID
 }
 ```
 
@@ -26,31 +24,25 @@ You can also add a `.timesheet` file to the root of each project to override set
 It will look like this
 
 ```
-2014-12-01 Mon
------ Meetings -----
+2016-03-17 Thu
+----- Development ( 6.75 ) -----
+2.75 ENG-6353 blah blah blah
+3.00 ENG-6350 blah blah blah
+1.00 ENG-6326 blah blah blah
+----- Meeting ( 0.5 ) -----
 0.50 Scrum
------ Tickets -----
-0.75 blah, blah, blah
-0.75 blah, blah, blah
-1.75 blah, blah, blah
-1.75 blah, blah, blah
-2.75 blah, blah, blah
-0.75 blah, blah, blah
-==  9
+==  7.25
 
-2014-12-02 Tue
------ Meetings -----
-0.75 la, la, la
-3.50 la, la, la
-1.25 la, la, la
------ Tickets -----
-0.50 la, la, la
-2.00 la, la, la
-2.00 la, la, la
-==  10
+2016-03-18 Fri
+----- Development ( 6.25 ) -----
+3.25 ENG-6326 blah blah blah
+3.00 ENG-6326 blah blah blah
+----- Meeting ( 0.5 ) -----
+0.50 Scrum
+==  6.75
 
 
-Total Hours: 19
+Total Hours:  41.25
 ```
 
 

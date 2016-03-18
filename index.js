@@ -123,7 +123,12 @@ function getTimeEntries(taskCodes, cb) {
           var total = 0;
 
           _.each(grouped, function(tasks, taskType){
-              console.log(chalk.yellow('----- ' + taskType + ' -----'));
+             var subtotal = _.reduce(tasks, function (memo, t) {
+               memo+=parseFloat(t.time);
+               return memo;
+             }, 0);
+
+              console.log(chalk.yellow('----- ' + taskType + ' ( ' + subtotal + ' ) -----'));
 
               tasks.forEach(function(d){
                   total+=parseFloat(d.time);
