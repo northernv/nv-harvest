@@ -1,9 +1,10 @@
 {
   "name": "nv-harvest",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "jira": "node jira.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,5 +19,8 @@
   "preferGlobal": true,
   "bin": {
     "timesheet": "index.js"
+  },
+  "devDependencies": {
+    "standard": "^8.1.0"
   }
 }
