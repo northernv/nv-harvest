@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.5.2",
+    "axios": "^0.14.0",
     "chalk": "^1.1.0",
     "harvest": "0.0.9",
     "lodash": "^3.9.3",
@@ -18,7 +19,8 @@
   },
   "preferGlobal": true,
   "bin": {
-    "timesheet": "index.js"
+    "timesheet": "index.js",
+    "jiratime": "jira.js"
   },
   "devDependencies": {
     "standard": "^8.1.0"
