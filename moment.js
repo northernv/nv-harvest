@@ -1,6 +1,8 @@
 'use strict'
 const moment = require('moment')
-const startOfWeek = 1 // Monday
+const config = require('./config')
+
+const startOfWeek = config.get('startOfWeek')
 
 // Changed start of week to monday
 moment.locale('us', {

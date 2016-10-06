@@ -1,4 +1,5 @@
 const path = require('path')
+const dateFormat = 'YYYYMMDD'
 const nconf = require('nconf')
 const configFileName = '.timesheet'
 const HOME = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
@@ -16,5 +17,10 @@ nconf.file('project', {
 
 // Fallback to global config in user's home folder.
 nconf.file('user', userEnvFile)
+
+nconf.defaults({
+  dateFormat: dateFormat,
+  startOfWeek: 1 // Monday
+})
 
 module.exports = nconf
