@@ -1,16 +1,17 @@
 {
   "name": "nv-harvest",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "echo \"Error: no start specified\" && exit 1",
     "jira": "node jira.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^1.5.2",
     "axios": "^0.14.0",
+    "bluebird": "^3.4.6",
     "chalk": "^1.1.0",
     "harvest": "0.0.9",
     "lodash": "^3.9.3",

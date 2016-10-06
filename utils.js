@@ -1,10 +1,14 @@
 'use strict'
-const config = require('./config')
 const axios = require('axios')
-const moment = require('moment')
+
+const config = require('./config')
+const moment = require('./moment')
 const jira = config.get('JIRA_URL')
 
+const dateFormat = config.get('dateFormat')
+
 module.exports = {
+  getDateRange,
   getJiraAuth,
   roundUp,
   isJiraTicket,
@@ -13,6 +17,57 @@ module.exports = {
   addWorklog,
   getJiraHours,
   getComment
+}
+
+function getDateRange () {
+  if (config.get('lastweek')) return getLastWeekDates()
+  if (config.get('yesterday')) return getYesterdayDates()
+
+  return getThisWeekDates()
+}
+
+function getYesterdayDates () {
+  const today = moment().startOf('day')
+  const yesterday = moment(today).subtract(1, 'd')
+
+  return {
+    start: getFormatted(yesterday),
+    end: getFormatted(yesterday)
+  }
+}
+
+function getStartOfThisWeek () {
+  return moment().startOf('week')
+}
+
+function getEndOfWeek (start) {
+  return moment(start).add(6, 'd')
+}
+
+function getFormatted (date) {
+  return date.format(dateFormat)
+}
+
+function getThisWeekDates () {
+  const startOfWeek = getStartOfThisWeek()
+  const endOfWeek = getEndOfWeek(startOfWeek)
+
+  return {
+    start: config.get('START') || getFormatted(startOfWeek),
+    end: config.get('END') || getFormatted(endOfWeek)
+  }
+}
+
+function getLastWeekDates () {
+  const startOfThisWeek = getStartOfThisWeek()
+  const startOfLastWeek = moment(startOfThisWeek).subtract(7, 'd')
+
+  const endOfLastWeek = getEndOfWeek(startOfLastWeek)
+
+  return {
+    start: getFormatted(startOfLastWeek),
+    end: getFormatted(endOfLastWeek)
+  }
 }
 
 function getJiraAuth () {
