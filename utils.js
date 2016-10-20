@@ -1,5 +1,6 @@
 'use strict'
 const axios = require('axios')
+const _ = require('lodash')
 
 const config = require('./config')
 const moment = require('./moment')
@@ -8,6 +9,9 @@ const jira = config.get('JIRA_URL')
 const dateFormat = config.get('dateFormat')
 
 module.exports = {
+  getJiraClient,
+  getJiraCookies,
+  getJiraWorklog,
   getDateRange,
   getJiraAuth,
   roundUp,
@@ -17,6 +21,47 @@ module.exports = {
   addWorklog,
   getJiraHours,
   getComment
+}
+
+function getJiraClient () {
+  return axios.create({
+    baseURL: jira,
+    auth: getJiraAuth()
+  })
+}
+
+function getJiraCookies (client) {
+  const url = 'auth/1/session'
+  const body = getJiraAuth()
+  return client.post(url, body)
+    .then(function (res) {
+      var cookies = _.get(res.headers, 'set-cookie')
+      if (cookies) {
+        const result = cookies.reduce(function (memo, cookie) {
+          const infoString = (cookie + '').split(';').shift()
+          const infoArr = infoString.split('=')
+          if (infoArr[0] === 'JSESSIONID') {
+            memo = infoString
+          }
+          return memo
+        }, '')
+        return result
+      }
+    })
+    .catch(function (err) {
+      console.log(err)
+    })
+}
+
+function getJiraWorklog (client, issue) {
+  const url = 'api/2/issue/' + issue + '/worklog'
+  return client.get(url)
+    .then(response => {
+      return response.data
+    })
+    .catch(function (err) {
+      console.log(err)
+    })
 }
 
 function getDateRange () {
@@ -72,9 +117,9 @@ function getLastWeekDates () {
 
 function getJiraAuth () {
   return {
+    sendImmediately: true,
     username: getUsername(),
-    password: config.get('JIRA_PASSWORD'),
-    sendImmediately: true
+    password: config.get('JIRA_PASSWORD')
   }
 }
 
@@ -96,7 +141,7 @@ function getUsername () {
   return config.get('JIRA_USERNAME')
 }
 
-function addWorklog (data) {
+function addWorklog (client, data) {
   const time = getHarvestTime(data.started)
   const formattedTime = time.format('YYYY-MM-DDTHH:MM:SS.000ZZ')
   const comment = getComment(data)
@@ -105,10 +150,10 @@ function addWorklog (data) {
     started: formattedTime,
     timeSpent: data.timeSpent + 'h'
   }
-  return axios.post(jira + 'issue/' + data.ticket + '/worklog?adjustEstimate=auto', req, {
-    auth: getJiraAuth()
-  })
-  .then(() => '== Adding == ' + comment)
+  const url = 'api/2/issue/' + data.ticket + '/worklog?adjustEstimate=auto'
+  return client.post(url, req)
+    .then(() => '== Adding == ' + comment)
+    .catch(console.log)
 }
 
 function getJiraHours (seconds) {
