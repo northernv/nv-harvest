@@ -2,6 +2,7 @@
 'use strict'
 
 const Bluebird = require('bluebird')
+const _ = require('lodash')
 
 const harvest = require('./harvest')
 const util = require('./utils')

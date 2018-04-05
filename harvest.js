@@ -11,6 +11,7 @@ const subdomain = config.get('SUBDOMAIN')
 const email = config.get('EMAIL')
 const password = config.get('PASSWORD')
 const projectId = config.get('PROJECT')
+const projectIds = config.get('PROJECTS')
 const harvest = Harvest({subdomain: subdomain, email: email, password: password})
 const Reports = harvest.Reports
 const Tasks = harvest.Tasks
@@ -26,10 +27,15 @@ module.exports = {
 }
 
 function getTimeEntries (start, end) {
-  return timeEntriesByProject({
-    project_id: projectId,
-    from: start,
-    to: end
+  return Bluebird.all(projectIds.map(id => {
+    return timeEntriesByProject({
+      project_id: id,
+      from: start,
+      to: end
+    })
+  }))
+  .then(res => {
+    return _.flatten(res)
   })
 }
 
@@ -50,6 +56,7 @@ function reduceEntries (entries, taskCodes) {
     const num = entry.hours
     const up = util.roundUp(num)
     const taskType = taskCodes[entry.task_id]
+    console.log(e)
 
     // Init array if doesn't exists
     if (!Array.isArray(memo[day])) memo[day] = []
@@ -57,7 +64,8 @@ function reduceEntries (entries, taskCodes) {
     memo[day].push({
       time: up,
       note: entry.notes,
-      taskType: taskType
+      taskType: taskType,
+      project: entry.project_id
     })
 
     return memo
@@ -83,7 +91,7 @@ function printTimesheet (times) {
 
       tasks.forEach(function (d) {
         total += parseFloat(d.time)
-        console.log(d.time, d.note)
+        console.log(d.project, d.time, d.note)
       })
     })
 
