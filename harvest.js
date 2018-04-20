@@ -10,16 +10,18 @@ const config = require('./config')
 const subdomain = config.get('SUBDOMAIN')
 const email = config.get('EMAIL')
 const password = config.get('PASSWORD')
-const projectId = config.get('PROJECT')
 const projectIds = config.get('PROJECTS')
 const harvest = Harvest({subdomain: subdomain, email: email, password: password})
 const Reports = harvest.Reports
 const Tasks = harvest.Tasks
+const Projects = harvest.Projects
 
 const timeEntriesByProject = Bluebird.promisify(Reports.timeEntriesByProject)
 const taskList = Bluebird.promisify(Tasks.list)
+const projectList = Bluebird.promisify(Projects.list)
 
 module.exports = {
+  getProjects,
   printTimesheet,
   reduceEntries,
   getTimeEntries,
@@ -49,14 +51,13 @@ function getTaskMap () {
     })
 }
 
-function reduceEntries (entries, taskCodes) {
+function reduceEntries (entries, taskCodes, projects) {
   return _.reduce(entries, function (memo, e) {
     const entry = e.day_entry
     const day = entry.spent_at
     const num = entry.hours
     const up = util.roundUp(num)
     const taskType = taskCodes[entry.task_id]
-    console.log(e)
 
     // Init array if doesn't exists
     if (!Array.isArray(memo[day])) memo[day] = []
@@ -65,7 +66,8 @@ function reduceEntries (entries, taskCodes) {
       time: up,
       note: entry.notes,
       taskType: taskType,
-      project: entry.project_id
+      project: entry.project_id,
+      projectName: projects[entry.project_id]
     })
 
     return memo
@@ -78,7 +80,7 @@ function printTimesheet (times) {
   _.each(times, function (day, date) {
     console.log(chalk.underline(date, moment(date).format('ddd')))
     var sorted = _.sortBy(day, 'taskType')
-    var grouped = _.groupBy(sorted, 'taskType')
+    var grouped = _.groupBy(sorted, 'projectName')
     var total = 0
 
     _.each(grouped, function (tasks, taskType) {
@@ -91,7 +93,7 @@ function printTimesheet (times) {
 
       tasks.forEach(function (d) {
         total += parseFloat(d.time)
-        console.log(d.project, d.time, d.note)
+        console.log(d.time, d.note)
       })
     })
 
@@ -102,4 +104,15 @@ function printTimesheet (times) {
 
   console.log('')
   console.log(chalk.green.bold('Total Hours: ', grandTotal))
+}
+
+function getProjects () {
+  return projectList({})
+  .then(projects => {
+    return projects.reduce((memo, { project }) => {
+      if (!projectIds.includes(project.id)) return memo
+      memo[project.id] = project.name
+      return memo
+    }, {})
+  })
 }
